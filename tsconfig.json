@@ -19,7 +19,7 @@
     "noUnusedParameters": true,
     "types": ["node"],
     "rootDir": "src",
-    "outDir": "lib/types"
+    "outDir": "lib"
   },
   "include": ["src"]
 }

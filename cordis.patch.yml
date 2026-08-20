@@ -1,0 +1,12 @@
+# dsh-docker bundle patch: mounts the shared Docker container owner as `ctx.docker`.
+# Capability adapters await the same container handle, so filesystem and process
+# operations inhabit one Linux execution world (optional persistent volume at cwd).
+#
+# idleTimeoutMs is inherited from DSH's idle timer; the container is created
+# lazily on first getContainer() (lazy: true) so merely mounting this plugin
+# does NOT pull or start a container until an adapter actually uses it.
+- insert:
+    - id: docker
+      name: '@deepseek-ai/dsh-docker'
+      config:
+        lazy: true
