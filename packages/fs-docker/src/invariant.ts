@@ -1,22 +1,22 @@
 /**
- * Package-owned invariant companion for `@deepseek-ai/dsh-docker`.
- * @module @deepseek-ai/dsh-docker/invariant
+ * Package-owned invariant companion for `@vladchatware/dsh-fs-docker`.
+ * @module @vladchatware/dsh-fs-docker/invariant
  */
 
 /* jscpd:ignore-start */
 import type { Context } from '@deepseek-ai/cordis'
 import type { InvariantInstaller } from '@deepseek-ai/dsh-invariants'
 
-const PACKAGE_NAME = '@deepseek-ai/dsh-docker'
+const PACKAGE_NAME = '@vladchatware/dsh-fs-docker'
 
 /** Cordis companion plugin name. */
-export const name = 'docker-invariant'
+export const name = 'fs-docker-invariant'
 /** Service required before the companion can reserve package ownership. */
 export const inject = ['invariants']
 
 /**
- * No runtime invariant: container creation and teardown have one Docker API
- * promise and no independent event or mutable-data relationship to cross-check.
+ * No runtime invariant: every operation is an atomic in-container mutation
+ * with no independent event or mutable-data relationship to cross-check.
  */
 const install: InvariantInstaller = () => {}
 

@@ -1,57 +1,48 @@
-# @deepseek-ai/dsh-docker
+# dsh-docker
 
-Shared lifecycle owner for one Docker container. Capability adapters inject
-`ctx.docker` and await the same container handle, so filesystem and process
-operations inhabit one Linux execution world with an optional persistent named
-volume at cwd. The owner mounts the engine through dockerode's socket/HTTP
-transport; it never uses the gRPC transport, so the optional native
-`cpu-features`/ssh2 builds stay denied in the workspace `allowBuilds`.
+Standalone monorepo for the DeepSeek Harness Docker capability — one shared
+container owner plus the adapters that expose it to filesystem, bash-tool, and
+subprocess consumers.
 
-## Configuration
+## Packages
 
-| Key | Default | Meaning |
-|---|---|---|
-| image | debian:bookworm-slim | OCI image to run |
-| cwd | /workspace | Shared remote working directory, created before adapters start |
-| timeoutMs | 2592000000 (30 days) | Idle container lifetime (ms); on expiry the container is killed and removed, then lazily recreated on the next use |
-| volume | auto-generated | Named volume mounted at cwd (persists across container removal) |
-| namePrefix | '' | Container-name prefix; a short uuid suffix keeps names unique |
-| lazy | false | Create the container on first getContainer() instead of at construction |
-| networkMode | bridge | Docker network mode: bridge, none, host, or a network name |
-| env | {} | Extra environment entries for the container itself |
+| Package | What it is |
+|---|---|
+| `packages/docker` — `@vladchatware/dsh-docker` | Shared lifecycle owner of one Docker container. Registers `ctx.docker`; no model-visible context of its own. |
+| `packages/fs-docker` — `@vladchatware/dsh-fs-docker` | Filesystem capability (`dsh-fs`) implemented against the container. |
+| `packages/tool-docker` — `@vladchatware/dsh-tool-docker` | The `docker_bash` tool capability (`dsh-tools`) implemented against the container. |
+| `packages/subprocess-docker` — `@vladchatware/dsh-subprocess-docker` | Subprocess capability (`dsh-subprocess`) implemented against the container. |
 
-## Lifecycle and ownership
+## Re-arming idle timeout
 
-Construction starts container creation eagerly (unless `lazy`) under a name
-like `dsh-dkr-<prefix>-<uuid8>`. Before `getContainer()` resolves, the owner
-creates `cwd` and the private `cwd/.dsh-dkr` adapter-state directory, sets it
-to mode `0700`, and verifies it is a real directory. Only session-end disposal is
-permanent: it kills and removes the container. The idle timer also kills and
-removes the container on expiry, but re-arms, so the next `getContainer()`
-lazily creates a fresh container rather than erroring. `execStream` wraps every
-argv so its process becomes its own process-group leader and writes
-`pid == pgid` to a private pid file; the parsed, multiplexed exec output
-comes from parseFrames (stream.ts).
+The container owner no longer latches `disposing` permanently after the idle
+`timeoutMs` expires. The idle timer tears down the current container and
+re-arms, so the next `getContainer()` lazily creates a fresh container instead
+of failing for the rest of the session. Only session-end hard disposal is
+permanent. The default `timeoutMs` is 30 days (2_592_000_000 ms).
 
-## Model Experience
+## Build and test
 
-None, as this shared container owner registers no model-visible context;
-provider adapters and consumers own any rendered effects.
+```sh
+npm install
+npm run typecheck
+npm run build
+npm test               # requires a reachable local Docker engine
+```
 
-#### KV Cache effect
+The lifecycle test (`packages/docker/tests/lifecycle.spec.ts`) proves a
+post-timeout `getContainer()` re-arms a fresh container instead of throwing.
 
-No direct invalidation; the named consumers own any request-prefix changes.
+## Known flaky tests
 
-## Known Limitations and Deferred Work
+Two container-backed tests are timing-sensitive under parallel execution and
+pass in isolation:
+- `packages/fs-docker/tests/filesystem.spec.ts` > `writes atomically with
+  guarded intents` — the file version is `sha256([path, kind, size, mtime-%Y])`
+  with mtime in seconds, so two same-size writes landing in the same wall-clock
+  second produce an identical version and the stale-version guard does not fire.
+- `packages/subprocess-docker/tests/subprocess.spec.ts` > `starts termination
+  from the abort signal` — a race between the abort signal and the exec start.
 
-- **One container per harness session** — a real host footprint (a Debian
-  container per session); operators should bound concurrent sessions.
-- **Shared kernel isolation** — a container is weaker than a microVM for
-  untrusted user code; treat it as an isolation improvement over the host,
-  not a hardware boundary.
-- **No network policy or secrets yet** — the container gets the default bridge
-  network and its configured env only; per-host/port allow rules and secret
-  wiring are follow-ups.
-- **Runs as root by default** — dropping to a non-root user is a follow-up.
-- **Requires a local Docker Engine and image pull** — `isInstalled()` pings
-  the engine; tests gate on `hasLocalSocket()`.
+Both are unrelated to the re-arm idle-timeout change and are tracked as
+follow-up fixes.

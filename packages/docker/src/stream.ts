@@ -3,7 +3,7 @@
  * exec stdout/stderr payload in an 8-byte header (stream type byte + 3
  * reserved bytes + 4-byte big-endian length) on the hijacked or streamed
  * transport; consumers must split the frames back out before routing output.
- * @module @deepseek-ai/dsh-docker/stream
+ * @module @vladchatware/dsh-docker/stream
  */
 
 import { Buffer } from 'node:buffer'

@@ -2,7 +2,7 @@
  * Shared ownership of one Docker container. Capability adapters await the same
  * container handle, so filesystem and process operations inhabit one Linux
  * execution world, with an optional persistent named volume at cwd.
- * @module @deepseek-ai/dsh-docker
+ * @module @vladchatware/dsh-docker
  */
 
 import { randomUUID } from 'node:crypto'

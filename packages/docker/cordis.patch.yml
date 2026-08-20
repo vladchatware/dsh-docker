@@ -1,0 +1,12 @@
+# vladchatware/dsh-docker bundle patch: mounts the shared Docker container owner
+# as ctx.docker. Capability adapters await the same container handle, so
+# filesystem and process operations inhabit one Linux execution world (optional
+# persistent volume at cwd).
+#
+# The container is created lazily on first getContainer() (lazy: true) so merely
+# mounting this bundle does NOT pull or start a container until an adapter uses it.
+- insert:
+    - id: docker
+      name: '@vladchatware/dsh-docker'
+      config:
+        lazy: true

@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { afterEach, describe, expect, it } from 'vitest'
 import { Context } from '@deepseek-ai/cordis'
-import DockerRuntime, { hasLocalSocket } from '@deepseek-ai/dsh-docker'
+import DockerRuntime, { hasLocalSocket } from '@vladchatware/dsh-docker'
 
 const available = hasLocalSocket()
 
