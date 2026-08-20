@@ -1,26 +1,24 @@
 {
-  "name": "@vladchatware/dsh-fs-docker",
+  "name": "@vladchatware/fs-docker",
   "description": "Docker filesystem implementation for DeepSeek Harness",
   "version": "0.1.0-rc.5",
   "license": "MIT",
   "type": "module",
   "main": "lib/index.js",
-  "types": "lib/types/index.d.ts",
-  "exports": { ".": { "types": "./lib/types/index.d.ts", "default": "./lib/index.js" }, "./invariant": { "types": "./lib/types/invariant.d.ts", "default": "./lib/invariant.js" }, "./src/*": "./src/*", "./package.json": "./package.json" },
-  "files": ["lib/index.js", "lib/invariant.js", "lib/types/**/*.d.ts"],
-  "scripts": { "build": "tsc -p tsconfig.json", "typecheck": "tsc -p tsconfig.json --noEmit" },
-  "peerDependencies": {
-    "@vladchatware/dsh-docker": "^0.1.0-rc.5",
-    "@deepseek-ai/dsh-fs": "^0.1.0-rc.8",
-    "@deepseek-ai/dsh-invariants": "^0.1.0-rc.8",
-    "@deepseek-ai/cordis": "^4.0.1"
+  "types": "lib/index.d.ts",
+  "exports": {
+    ".": { "types": "./lib/index.d.ts", "default": "./lib/index.js" },
+    "./invariant": { "types": "./lib/invariant.d.ts", "default": "./lib/invariant.js" },
+    "./src/*": "./src/*",
+    "./package.json": "./package.json"
   },
+  "files": ["lib"],
+  "scripts": {
+    "prepare": "npm run build",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "peerDependencies": { "@vladchatware/dsh-docker": "^0.1.0-rc.5", "@deepseek-ai/dsh-fs": "^0.1.0-rc.8", "@deepseek-ai/dsh-invariants": "^0.1.0-rc.8", "@deepseek-ai/cordis": "^4.0.1" },
   "dependencies": { "@deepseek-ai/schemastery": "^3.18.1", "tar-stream": "^3.2.0" },
-  "devDependencies": {
-    "@vladchatware/dsh-docker": "^0.1.0-rc.5",
-    "@deepseek-ai/dsh-fs": "^0.1.0-rc.8",
-    "@deepseek-ai/dsh-invariants": "^0.1.0-rc.8",
-    "@deepseek-ai/cordis": "^4.0.1",
-    "@types/tar-stream": "^3.1.4"
-  }
+  "devDependencies": { "@vladchatware/dsh-docker": "^0.1.0-rc.5", "@deepseek-ai/dsh-fs": "^0.1.0-rc.8", "@deepseek-ai/dsh-invariants": "^0.1.0-rc.8", "@deepseek-ai/cordis": "^4.0.1", "@types/tar-stream": "^3.1.4" }
 }
