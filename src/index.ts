@@ -231,13 +231,24 @@ export class DockerRuntime extends Service {
    *  drop readiness so the next use opens a fresh container, and bound it too. */
   private armIdleTimer(): void {
     this.clearIdleTimer()
-    this.timer = setTimeout(() => {
-      void (async () => {
-        await this.teardown()
-        this.ready = null
-        this.armIdleTimer()
-      })()
-    }, this.config.timeoutMs)
+    // Node clamps setTimeout delays to a 32-bit signed int (~24.8 days), while the
+    // default idle lifetime is 30 days. Chunk the delay across multiple timers so the
+    // configured timeout is honored instead of being clamped to ~1ms (which would
+    // otherwise busy-loop teardown/re-arm every millisecond).
+    const deadline = Date.now() + this.config.timeoutMs
+    const tick = () => {
+      const remaining = deadline - Date.now()
+      if (remaining <= 0) {
+        void (async () => {
+          await this.teardown()
+          this.ready = null
+          this.armIdleTimer()
+        })()
+        return
+      }
+      this.timer = setTimeout(tick, Math.min(remaining, 0x7fffffff))
+    }
+    this.timer = setTimeout(tick, Math.min(this.config.timeoutMs, 0x7fffffff))
   }
 
   /** Whether the service has begun disposal. */
